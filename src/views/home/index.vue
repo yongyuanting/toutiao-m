@@ -19,16 +19,27 @@
       </van-tab>
       <!--      占位-->
       <div slot="nav-right" class="placeholder"></div>
-      <div slot="nav-right" class="hbg">
+      <div slot="nav-right" class="hbg" @click="isChannelEditShow=true">
         <i class="iconfont icon-gengduo"></i>
       </div>
     </van-tabs>
+    <!--    频道编辑弹出层-->
+    <van-popup
+      v-model="isChannelEditShow"
+      closeable
+      position="bottom"
+      close-icon-position="top-left"
+      :style="{ height: '100%' }"
+    >
+      <channel-edit :my-channels="channels" :active="active" @update-active="onUpdateActive"></channel-edit>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import { getUserChannels } from '@/api/user'
 import articleList from './components/article-list'
+import channelEdit from '@/views/home/components/channelEdit'
 
 export default {
   name: 'home',
@@ -41,7 +52,8 @@ export default {
   data () {
     return {
       active: 0,
-      channels: [] // 频道列表
+      channels: [], // 频道列表
+      isChannelEditShow: false // 控制弹出层展示状态
     }
   },
   created () {
@@ -57,10 +69,15 @@ export default {
       } catch (err) {
         this.$toast('获取频道数据失败')
       }
+    },
+    onUpdateActive (index, isChannelEdit = true) {
+      this.active = index
+      this.isChannelEditShow = isChannelEdit
     }
   },
   components: {
-    articleList
+    articleList,
+    channelEdit
   }
 }
 </script>

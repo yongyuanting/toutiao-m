@@ -10,7 +10,12 @@
         :error.sync="error"
         error-text="请求失败，你在点点试试？"
       >
-        <van-cell v-for="(article,index) in list" :key="index" :title="article.title"/>
+        <article-item
+          v-for="(article,index) in list"
+          :key="index"
+          :article="article"
+        />
+        <!--        <van-cell v-for="(article,index) in list" :key="index" :title="article.title"/>-->
       </van-list>
     </van-pull-refresh>
   </div>
@@ -18,9 +23,11 @@
 
 <script>
 import { getArticlesList } from '@/api/article'
+import ArticleItem from '@/components/article-item'
 
 export default {
   name: 'article-list',
+  components: { ArticleItem },
   // props: ['channel'],
   props: {
     channel: {
@@ -75,7 +82,7 @@ export default {
         // if (Math.random() > 0.5) {
         //   JSON.parse('dsadiajsidas')
         // }
-        console.log(data)
+        // console.log(data)
         // 把请求结果数据放入list中
         const { results } = data.data
         // 数组展开操作符，他会把数组元素一个一个拿出来
