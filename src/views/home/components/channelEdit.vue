@@ -41,7 +41,9 @@
 </template>
 
 <script>
-import { getAllChannels } from '@/api/channel'
+import { getAllChannels, addUserChannels, deleteUserChannels } from '@/api/channel'
+import { mapState } from 'vuex'
+import { setItem } from '@/utils/storage'
 
 export default {
   name: 'channelEdit',
@@ -77,6 +79,7 @@ export default {
     //   return channels
     // }
     // 计算属性会观察内部依赖数据的变化，计算属性会重新求值运算
+    ...mapState(['user']),
     recommendChannels () {
       // 数组的filter方法，遍历数组，把符合条件的元素，存储到新数组中并返回
       return this.allChannels.filter(channel => {
@@ -99,9 +102,24 @@ export default {
         this.$toast('数据获取失败')
       }
     },
-    onAddChannel (channel) {
+    async onAddChannel (channel) {
       // console.log(channel)
       this.myChannels.push(channel)
+      // 数据持久化
+      if (this.user) {
+        try {
+          // 已登录，数据上传到服务器
+          await addUserChannels({
+            id: channel.id, // 频道id
+            seq: this.myChannels.length // 序号
+          })
+        } catch (err) {
+          console.log(err)
+        }
+      } else {
+        // 未登录，数据存储在本地
+        setItem('TOUTIAO_CHANNELS', this.myChannels)
+      }
     },
     onMyChannelClick (channel, index) {
       // console.log(channel, index)
@@ -116,10 +134,25 @@ export default {
           this.$emit('update-active', this.active - 1)
         }
         this.myChannels.splice(index, 1)
+        // 数据持久化
+        this.deleteChannel(channel.id)
       }
       // 非编辑状态，跳转频道
       if (!this.isEdit) {
         this.$emit('update-active', index, false)
+      }
+    },
+    async deleteChannel (id) {
+      if (this.user) {
+        try {
+          // 已登录，更新到服务器
+          await deleteUserChannels(id)
+        } catch (err) {
+          this.$toast('操作失败，请重试')
+        }
+      } else {
+        // 未登录，将数据更新到本地
+        setItem('TOUTIAO_CHANNELS', this.myChannels)
       }
     }
   }

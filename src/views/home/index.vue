@@ -3,7 +3,7 @@
     <!--    导航-->
     <van-nav-bar class="page-nav-var" fixed>
       <template #title>
-        <van-button type="info" size="small" round class="iconfont icon-sousuo search-btn">
+        <van-button type="info" size="small" round class="iconfont icon-sousuo search-btn" to="/search">
           <div class="iconfont icon-sousuo left"></div>
           <div class="right">搜索</div>
         </van-button>
@@ -40,6 +40,8 @@
 import { getUserChannels } from '@/api/user'
 import articleList from './components/article-list'
 import channelEdit from '@/views/home/components/channelEdit'
+import { mapState } from 'vuex'
+import { getItem } from '@/utils/storage'
 
 export default {
   name: 'home',
@@ -62,10 +64,25 @@ export default {
   methods: {
     async loadChannles () {
       try {
-        const { data: res } = await getUserChannels()
-        // console.log(data)
-        this.channels = res.data.channels
+        // const { data: res } = await getUserChannels()
+        // // console.log(data)
+        // this.channels = res.data.channels
         // console.log(this.channels)
+        let channels = []
+        if (this.user) {
+          const { data: res } = await getUserChannels()
+          channels = res.data.channels
+        } else {
+          // 未登录，本地有频道数据拿来用，没有获取默认
+          const localChannels = getItem('TOUTIAO_CHANNELS')
+          if (localChannels) {
+            channels = localChannels
+          } else {
+            const { data } = await getUserChannels()
+            channels = data.data.channels
+          }
+        }
+        this.channels = channels
       } catch (err) {
         this.$toast('获取频道数据失败')
       }
@@ -78,6 +95,9 @@ export default {
   components: {
     articleList,
     channelEdit
+  },
+  computed: {
+    ...mapState(['user'])
   }
 }
 </script>
